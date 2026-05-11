@@ -18,33 +18,43 @@ Everything updates live — no page refresh needed.
 
 ## Install
 
-### Option 1: Arch Linux (PKGBUILD)
+### Option 1: Terra DE Pacman Repo
+
+Add the [Terra DE repository](https://github.com/terra-de/terra-packages) and install:
 
 ```bash
-cd ~/dev/terra-de/terra-packages/terratheme-browser-git
+sudo pacman -S terratheme-browser
+```
+
+Then install the signed `.xpi` from the [latest release](https://github.com/terra-de/terratheme-browser/releases). Open Firefox and drag the `.xpi` into the window, then click "Add".
+
+### Option 2: From source (PKGBUILD)
+
+```bash
+git clone https://github.com/terra-de/terra-packages.git
+cd terra-packages/terratheme-browser-git
 makepkg -si
 ```
 
-The PKGBUILD installs the native messaging host to the system. Then install the signed `.xpi` in Firefox (see below).
+Then install the signed `.xpi` from the [latest release](https://github.com/terra-de/terratheme-browser/releases).
 
-### Option 2: Manual native host install
+### Option 3: Manual native host install
 
 ```bash
+git clone https://github.com/terra-de/terratheme-browser.git
 sudo cp host/terratheme-browser.py /usr/share/terratheme-browser/
 sudo cp host/terratheme_browser.json /usr/lib/mozilla/native-messaging-hosts/
 ```
 
-### Installing the signed extension
-
-1. Download the `.xpi` from the [latest release](https://github.com/terra-de/terratheme-browser/releases)
-2. Open Firefox → drag the `.xpi` into the window
-3. Click "Add" when prompted
+Then install the signed `.xpi` from the [latest release](https://github.com/terra-de/terratheme-browser/releases).
 
 ### Temporary install (for development)
 
 1. Open `about:debugging#/runtime/this-firefox`
 2. Click "Load Temporary Add-on"
 3. Select `extension/manifest.json`
+
+The native messaging host must still be installed for the extension to function.
 
 ## Usage
 
@@ -74,12 +84,18 @@ Click the toolbar icon to open the popup:
 
 ### Extension
 
-The `.xpi` is a one-time install. To update, download the new `.xpi` from the latest release and drag it into Firefox to replace the old one.
+Download the new `.xpi` from the [latest release](https://github.com/terra-de/terratheme-browser/releases) and drag it into Firefox to replace the old one.
 
 ### Native host
 
 ```bash
-cd ~/dev/terra-de/terra-packages/terratheme-browser-git
+sudo pacman -Syu terratheme-browser
+```
+
+Or if installed from source:
+
+```bash
+cd terra-packages/terratheme-browser-git
 git pull
 makepkg -si
 ```
