@@ -1,0 +1,7 @@
+{
+  "name": "terrathe_browser",
+  "description": "Bridge between terratheme palette.json and the terra-theme-browser extension",
+  "path": "/usr/share/terrathe-browser/terrathe-browser.py",
+  "type": "stdio",
+  "allowed_extensions": ["terra-theme-browser@terra-de.org"]
+}

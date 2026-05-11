@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.DS_Store
+*.swp
+*.swo
+*~
+*.zip
+node_modules/
+dist/

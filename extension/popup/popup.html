@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Terra Theme</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>Terra Theme</h1>
+      <span id="mode-badge" class="badge">dark</span>
+    </header>
+
+    <section id="status-section">
+      <div id="status-indicator" class="status-dot status-connecting"></div>
+      <span id="status-text">Connecting…</span>
+    </section>
+
+    <section id="palette-preview">
+      <div class="swatch-row" id="bg-swatches"></div>
+      <div class="swatch-row" id="accent-swatches"></div>
+    </section>
+
+    <section class="controls">
+      <label class="toggle-row">
+        <span>Disable on this site</span>
+        <input type="checkbox" id="disable-toggle">
+        <span class="toggle-slider"></span>
+      </label>
+    </section>
+
+    <footer>
+      <span id="site-domain"></span>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
