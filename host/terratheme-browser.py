@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Native messaging host for terrathe-browser Firefox extension.
+Native messaging host for terratheme-browser Firefox extension.
 
 Protocol: Firefox Native Messaging (4-byte uint32 length prefix + JSON UTF-8)
 Reads ~/.config/terra/palette.json and pushes updates to the extension
@@ -55,10 +55,10 @@ def read_stdin_loop():
                 send_message({"type": "pong"})
 
         except Exception as e:
-            print(f"terrathe-browser: stdin error: {e}", file=sys.stderr)
+            print(f"terratheme-browser: stdin error: {e}", file=sys.stderr)
             break
 
-    print("terrathe-browser: stdin reader exiting", file=sys.stderr)
+    print("terratheme-browser: stdin reader exiting", file=sys.stderr)
 
 
 def load_palette() -> dict | None:
@@ -68,7 +68,7 @@ def load_palette() -> dict | None:
             raw = PALETTE_PATH.read_text(encoding="utf-8")
             return json.loads(raw)
     except (json.JSONDecodeError, OSError) as e:
-        print(f"terrathe-browser: error reading palette: {e}", file=sys.stderr)
+        print(f"terratheme-browser: error reading palette: {e}", file=sys.stderr)
     return None
 
 
@@ -85,7 +85,7 @@ def send_palette_message(palette: dict) -> None:
 
 
 def main():
-    print("terrathe-browser: host started", file=sys.stderr)
+    print("terratheme-browser: host started", file=sys.stderr)
 
     # Start stdin reader thread
     stdin_thread = threading.Thread(target=read_stdin_loop, daemon=True)
@@ -96,7 +96,7 @@ def main():
     if palette:
         send_palette_message(palette)
     else:
-        print("terrathe-browser: no palette.json found yet", file=sys.stderr)
+        print("terratheme-browser: no palette.json found yet", file=sys.stderr)
 
     # Poll for changes
     last_mtime = PALETTE_PATH.stat().st_mtime if PALETTE_PATH.exists() else 0
@@ -127,12 +127,12 @@ def main():
             last_content = current_content
             send_palette_message(palette)
             print(
-                f"terrathe-browser: pushed update ({palette.get('mode', '?')})",
+                f"terratheme-browser: pushed update ({palette.get('mode', '?')})",
                 file=sys.stderr,
             )
     except (BrokenPipeError, OSError):
         # Firefox closed the native messaging connection — exit cleanly
-        print("terrathe-browser: connection closed, exiting", file=sys.stderr)
+        print("terratheme-browser: connection closed, exiting", file=sys.stderr)
 
 
 if __name__ == "__main__":

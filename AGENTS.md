@@ -35,8 +35,8 @@ terratheme-browser/
 │       ├── icon-96.svg
 │       └── icon-128.svg
 ├── host/                   # Native messaging host
-│   ├── terrathe-browser.json  # Native messaging manifest
-│   └── terrathe-browser.py    # Python bridge (poll palette.json ~2s)
+│   ├── terratheme_browser.json  # Native messaging manifest
+│   └── terratheme-browser.py    # Python bridge (poll palette.json ~2s)
 ├── AGENTS.md
 ├── LICENSE
 └── .gitignore
@@ -48,7 +48,7 @@ terratheme-browser/
 palette.json (written by terratheme)
     │
     ▼ (polls every 2s)
-host/terrathe-browser.py (Python native messaging host)
+host/terratheme-browser.py (Python native messaging host)
     │
     ▼ (stdin/stdout, 4-byte length prefix + JSON)
 extension/background.js
@@ -106,14 +106,14 @@ makepkg -si
 ```
 
 This installs:
-- `/usr/share/terrathe-browser/terrathe-browser.py` — the Python bridge
-- `/usr/lib/mozilla/native-messaging-hosts/terrathe-browser.json` — Firefox native messaging manifest
+- `/usr/share/terratheme-browser/terratheme-browser.py` — the Python bridge
+- `/usr/lib/mozilla/native-messaging-hosts/terratheme_browser.json` — Firefox native messaging manifest
 
 ### Testing without the native host
 
 Start the host manually:
 ```bash
-python3 host/terrathe-browser.py
+python3 host/terratheme-browser.py
 ```
 
 The extension will auto-connect when loaded in Firefox.

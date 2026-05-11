@@ -1,12 +1,12 @@
 /**
  * Terra Theme Browser — Background Script
  *
- * Connects to the terrathe-browser native messaging host,
+ * Connects to the terratheme-browser native messaging host,
  * receives palette updates, applies browser chrome theming,
  * and broadcasts palette data to content scripts.
  */
 
-const NATIVE_HOST = "terrathe_browser";
+const NATIVE_HOST = "terratheme_browser";
 const STORAGE_KEY_PALETTES = "terratheme_palettes";
 const STORAGE_KEY_DISABLED = "terratheme_disabled_origins";
 
