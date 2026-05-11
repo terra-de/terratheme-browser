@@ -3,7 +3,7 @@
   "match": ["*://github.com/*"],
   "rules": [
     {
-      "selector": "html[data-color-mode=\"dark\"][data-dark-theme], html[data-color-mode=\"auto\"][data-light-theme=\"dark\"], html[data-color-mode=\"auto\"][data-dark-theme]",
+      "selector": ":root",
       "important": true,
       "set": {
         "--bgColor-default": "var(--tt-base)",

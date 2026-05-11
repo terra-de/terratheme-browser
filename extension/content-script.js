@@ -19,32 +19,31 @@ let siteConfigCache = new Map(); // url → config promise
 // ── Bootstrap ───────────────────────────────────────────────────────
 
 async function init() {
-  [disabled, palette] = await Promise.all([
-    loadDisabled(),
-    loadPalette(),
-  ]);
+  // 1. Register listener FIRST — catches any updates that arrive before/during/after init
+  browser.storage.onChanged.addListener(onStorageChanged);
 
+  // 2. Load disabled list from local storage
+  disabled = await loadDisabled();
+
+  // 3. Try to get palette from storage.session first (cached from previous page)
+  palette = await loadPalette();
+
+  // 4. If still null, ask background.js directly (most reliable — skips storage race)
+  if (!palette) {
+    try {
+      palette = await browser.runtime.sendMessage({ action: "get_palette" });
+    } catch {
+      // Background might not be ready yet
+    }
+  }
+
+  // 5. Apply whatever we got
   if (palette) {
     applyBaseStyles(palette);
     maybeApplySiteStyles(palette);
   }
 
-  // Listen for palette updates from background
-  browser.storage.onChanged.addListener((changes, area) => {
-    if (area === "session" && changes[STORAGE_PALETTES]) {
-      palette = changes[STORAGE_PALETTES].newValue;
-      if (palette) {
-        applyBaseStyles(palette);
-        maybeApplySiteStyles(palette);
-      }
-    }
-    if (area === "local" && changes[STORAGE_DISABLED]) {
-      disabled = changes[STORAGE_DISABLED].newValue || [];
-      (palette) && maybeApplySiteStyles(palette);
-    }
-  });
-
-  // SPA navigation watcher
+  // 6. SPA navigation watcher
   let last = location.href;
   setInterval(() => {
     if (location.href !== last) {
@@ -53,6 +52,20 @@ async function init() {
       (palette) && maybeApplySiteStyles(palette);
     }
   }, 300);
+}
+
+function onStorageChanged(changes, area) {
+  if (area === "session" && changes[STORAGE_PALETTES]) {
+    palette = changes[STORAGE_PALETTES].newValue;
+    if (palette) {
+      applyBaseStyles(palette);
+      maybeApplySiteStyles(palette);
+    }
+  }
+  if (area === "local" && changes[STORAGE_DISABLED]) {
+    disabled = changes[STORAGE_DISABLED].newValue || [];
+    (palette) && maybeApplySiteStyles(palette);
+  }
 }
 
 // ── Storage ─────────────────────────────────────────────────────────

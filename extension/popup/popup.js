@@ -9,16 +9,22 @@ const BG = browser.runtime;
 async function init() {
   const app = document.getElementById("app");
 
-  // Get current tab origin
-  const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-  const tab = tabs[0];
-  const origin = new URL(tab.url).origin;
-  document.getElementById("site-domain").textContent = origin;
+  // Get current tab origin (with fallback on error)
+  let origin = "";
+  try {
+    const tabs = await browser.tabs?.query({ active: true, currentWindow: true });
+    if (tabs?.[0]?.url) {
+      origin = new URL(tabs[0].url).origin;
+    }
+  } catch {
+    // tabs.query may fail in some Firefox contexts
+  }
+  document.getElementById("site-domain").textContent = origin || "unknown";
 
   // Get palette and disable state from background
   const [palette, isDisabled] = await Promise.all([
     BG.sendMessage({ action: "get_palette" }),
-    BG.sendMessage({ action: "is_disabled", origin }),
+    origin ? BG.sendMessage({ action: "is_disabled", origin }) : Promise.resolve(false),
   ]);
 
   // Update status

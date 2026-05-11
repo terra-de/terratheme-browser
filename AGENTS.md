@@ -96,8 +96,6 @@ extension/background.js
 The native messaging host must be installed for the extension to function.
 See PKGBUILD below.
 
-### Installing the native messaging host
-
 The host is packaged as `terratheme-browser-git` in the terra-packages repo:
 
 ```bash
