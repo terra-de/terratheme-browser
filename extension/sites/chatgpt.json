@@ -51,17 +51,32 @@
         "--link-hover-color": "color-mix(in srgb, var(--tt-c4) 85%, var(--tt-standard) 15%)",
         "--icon-color": "var(--tt-standard)",
         "--icon-secondary": "var(--tt-muted)",
-        "--shadow-sm": "0 1px 2px 0 rgba(0,0,0,0.3)",
-        "--shadow-md": "0 4px 6px -1px rgba(0,0,0,0.4)",
-        "--shadow-lg": "0 10px 15px -3px rgba(0,0,0,0.5)",
-        "--shadow-xl": "0 20px 25px -5px rgba(0,0,0,0.6)"
+        "--surface-primary": "var(--tt-base)",
+        "--surface-secondary": "var(--tt-low)",
+        "--surface-tertiary": "var(--tt-high)",
+        "--canvas-background": "var(--tt-low)",
+        "--thread-background": "var(--tt-base)"
       }
     },
     {
-      "selector": ".bg-token-bg-primary",
+      "selector": ".bg-token-main-surface-primary",
       "important": false,
       "set": {
         "background-color": "var(--tt-base)"
+      }
+    },
+    {
+      "selector": ".bg-token-main-surface-secondary",
+      "important": false,
+      "set": {
+        "background-color": "var(--tt-low)"
+      }
+    },
+    {
+      "selector": ".bg-token-main-surface-tertiary",
+      "important": false,
+      "set": {
+        "background-color": "var(--tt-high)"
       }
     },
     {
@@ -69,6 +84,55 @@
       "important": false,
       "set": {
         "background-color": "var(--tt-base)"
+      }
+    },
+    {
+      "selector": ".bg-token-sidebar-surface-secondary",
+      "important": false,
+      "set": {
+        "background-color": "var(--tt-low)"
+      }
+    },
+    {
+      "selector": ".bg-token-sidebar-surface-tertiary",
+      "important": false,
+      "set": {
+        "background-color": "var(--tt-base)"
+      }
+    },
+    {
+      "selector": ".text-token-text-primary",
+      "important": false,
+      "set": {
+        "color": "var(--tt-standard)"
+      }
+    },
+    {
+      "selector": ".text-token-text-secondary",
+      "important": false,
+      "set": {
+        "color": "var(--tt-muted)"
+      }
+    },
+    {
+      "selector": ".text-token-text-tertiary",
+      "important": false,
+      "set": {
+        "color": "color-mix(in srgb, var(--tt-muted) 60%, transparent)"
+      }
+    },
+    {
+      "selector": ".border-token-border-primary",
+      "important": false,
+      "set": {
+        "border-color": "var(--tt-outline)"
+      }
+    },
+    {
+      "selector": ".border-token-border-secondary",
+      "important": false,
+      "set": {
+        "border-color": "var(--tt-outline-variant)"
       }
     }
   ]
