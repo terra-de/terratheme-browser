@@ -87,6 +87,16 @@ function isDisabled() {
   return disabled.includes(location.origin);
 }
 
+// ── Live palette update listener ────────────────────────────────────
+
+browser.runtime.onMessage.addListener((msg) => {
+  if (msg.action === "palette_updated") {
+    palette = msg.palette;
+    applyBaseStyles(palette);
+    maybeApplySiteStyles(palette);
+  }
+});
+
 // ── Base style injection ────────────────────────────────────────────
 
 function applyBaseStyles(p) {

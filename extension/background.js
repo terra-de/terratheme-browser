@@ -67,6 +67,9 @@ function onHostMessage(msg) {
   // Persist in storage for content scripts
   browser.storage.session.set({ [STORAGE_KEY_PALETTES]: palette }).catch(() => {});
 
+  // Push palette to all tabs so content scripts update live
+  broadcastToTabs(palette);
+
   // Apply browser chrome theme
   applyBrowserTheme(palette);
 }
@@ -122,6 +125,23 @@ function applyBrowserTheme(palette) {
       ntp_text:       colors.standard || "#e8e8e9",
     },
   });
+}
+
+// ── Broadcast to tabs ────────────────────────────────────────────
+
+async function broadcastToTabs(palette) {
+  try {
+    const tabs = await browser.tabs.query({});
+    for (const tab of tabs) {
+      try {
+        await browser.tabs.sendMessage(tab.id, { action: "palette_updated", palette });
+      } catch {
+        // Tab doesn't have content script loaded yet
+      }
+    }
+  } catch {
+    // tabs.query failed — not critical
+  }
 }
 
 // ── Per-site disable management ──────────────────────────────────
