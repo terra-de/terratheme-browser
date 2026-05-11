@@ -80,7 +80,7 @@ function applyBrowserTheme(palette) {
   browser.theme.update({
     colors: {
       // Main chrome
-      frame:                  colors.base || "#1a1a2e",
+      frame:                  colors.low || "#131520",
       toolbar:                colors.high || "#232639",
       toolbar_text:           colors.standard || "#e8e8e9",
       toolbar_top_separator:  colors.outline || "#595d73",

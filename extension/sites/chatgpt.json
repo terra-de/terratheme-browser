@@ -10,7 +10,7 @@
         "--main-surface-secondary": "var(--tt-low)",
         "--main-surface-tertiary": "var(--tt-high)",
         "--message-surface": "var(--tt-base)",
-        "--sidebar-surface-primary": "var(--tt-bottom)",
+        "--sidebar-surface-primary": "var(--tt-base)",
         "--sidebar-surface-secondary": "var(--tt-low)",
         "--sidebar-surface-tertiary": "var(--tt-base)",
         "--text-primary": "var(--tt-standard)",
@@ -42,7 +42,7 @@
         "--overlay-background": "var(--tt-scrim)",
         "--popup-background": "var(--tt-high)",
         "--popup-border": "var(--tt-outline-variant)",
-        "--code-background": "var(--tt-bottom)",
+        "--code-background": "var(--tt-low)",
         "--selection-background": "color-mix(in srgb, var(--tt-c4) 30%, transparent)",
         "--component-background": "var(--tt-low)",
         "--component-border": "var(--tt-outline-variant)",
@@ -68,7 +68,7 @@
       "selector": ".bg-token-sidebar-surface-primary",
       "important": false,
       "set": {
-        "background-color": "var(--tt-bottom)"
+        "background-color": "var(--tt-base)"
       }
     }
   ]

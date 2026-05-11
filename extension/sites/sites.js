@@ -13,7 +13,7 @@ const TERRA_SITE_CONFIGS = [
           "--main-surface-secondary": "var(--tt-low)",
           "--main-surface-tertiary": "var(--tt-high)",
           "--message-surface": "var(--tt-base)",
-          "--sidebar-surface-primary": "var(--tt-bottom)",
+          "--sidebar-surface-primary": "var(--tt-base)",
           "--sidebar-surface-secondary": "var(--tt-low)",
           "--sidebar-surface-tertiary": "var(--tt-base)",
           "--text-primary": "var(--tt-standard)",
@@ -45,7 +45,7 @@ const TERRA_SITE_CONFIGS = [
           "--overlay-background": "var(--tt-scrim)",
           "--popup-background": "var(--tt-high)",
           "--popup-border": "var(--tt-outline-variant)",
-          "--code-background": "var(--tt-bottom)",
+          "--code-background": "var(--tt-low)",
           "--selection-background": "color-mix(in srgb, var(--tt-c4) 30%, transparent)",
           "--component-background": "var(--tt-low)",
           "--component-border": "var(--tt-outline-variant)",
@@ -68,7 +68,7 @@ const TERRA_SITE_CONFIGS = [
       {
         "selector": ".bg-token-sidebar-surface-primary",
         "important": false,
-        "set": { "background-color": "var(--tt-bottom)" }
+        "set": { "background-color": "var(--tt-base)" }
       }
     ]
   },
@@ -81,10 +81,10 @@ const TERRA_SITE_CONFIGS = [
         "important": true,
         "set": {
           "--bgColor-default": "var(--tt-base)",
-          "--bgColor-muted": "var(--tt-bottom)",
-          "--bgColor-inset": "var(--tt-bottom)",
+          "--bgColor-muted": "var(--tt-low)",
+          "--bgColor-inset": "var(--tt-low)",
           "--bgColor-emphasis": "var(--tt-low)",
-          "--bgColor-disabled": "var(--tt-bottom)",
+          "--bgColor-disabled": "var(--tt-low)",
           "--bgColor-transparent": "transparent",
           "--fgColor-default": "var(--tt-standard)",
           "--fgColor-muted": "var(--tt-muted)",
@@ -298,7 +298,7 @@ const TERRA_SITE_CONFIGS = [
         "set": {
           "--color-ui-canvas": "var(--tt-base)",
           "--color-neutral-background": "var(--tt-base)",
-          "--color-neutral-background-weak": "var(--tt-bottom)",
+          "--color-neutral-background-weak": "var(--tt-low)",
           "--color-neutral-background-medium": "var(--tt-low)",
           "--color-neutral-background-hover": "var(--tt-high)",
           "--color-neutral-background-selected": "var(--tt-low)",

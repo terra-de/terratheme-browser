@@ -8,7 +8,7 @@
       "set": {
         "--color-ui-canvas": "var(--tt-base)",
         "--color-neutral-background": "var(--tt-base)",
-        "--color-neutral-background-weak": "var(--tt-bottom)",
+        "--color-neutral-background-weak": "var(--tt-low)",
         "--color-neutral-background-medium": "var(--tt-low)",
         "--color-neutral-background-hover": "var(--tt-high)",
         "--color-neutral-background-selected": "var(--tt-low)",

@@ -7,10 +7,10 @@
       "important": true,
       "set": {
         "--bgColor-default": "var(--tt-base)",
-        "--bgColor-muted": "var(--tt-bottom)",
-        "--bgColor-inset": "var(--tt-bottom)",
+        "--bgColor-muted": "var(--tt-low)",
+        "--bgColor-inset": "var(--tt-low)",
         "--bgColor-emphasis": "var(--tt-low)",
-        "--bgColor-disabled": "var(--tt-bottom)",
+        "--bgColor-disabled": "var(--tt-low)",
         "--bgColor-transparent": "transparent",
         "--fgColor-default": "var(--tt-standard)",
         "--fgColor-muted": "var(--tt-muted)",
