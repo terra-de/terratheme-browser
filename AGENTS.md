@@ -25,6 +25,7 @@ terratheme-browser/
 │   │   ├── popup.js
 │   │   └── popup.css
 │   ├── sites/
+│   │   ├── sites.js         # Bundled site configs (loaded before content-script.js)
 │   │   ├── github.json
 │   │   ├── reddit.json
 │   │   ├── youtube.json
@@ -58,7 +59,7 @@ extension/background.js
                                         ▼
                                    content-script.js
                                     ├── Injects :root { --tt-*: ... }
-                                    └── Fetches sites/*.json from extension
+                                    └── Uses TERRA_SITE_CONFIGS from sites.js
                                         └── Applies per-site CSS var overrides
 ```
 
@@ -118,7 +119,8 @@ The extension will auto-connect when loaded in Firefox.
 
 ## Site Config Format
 
-Each site config is a JSON file in `extension/sites/` with:
+Each site config is a JSON file in `extension/sites/` (and bundled into
+`sites.js` as `TERRA_SITE_CONFIGS`) with:
 
 ```json
 {
@@ -143,9 +145,8 @@ by the content script.
 ## Adding a new site
 
 1. Analyze the site's CSS variables (use DevTools to inspect computed styles on `<html>`)
-2. Create a new `extension/sites/sitename.json` with appropriate match patterns and rules
-3. Add the candidate entry to `SITE_CANDIDATES` in `content-script.js`
-4. Add the host permission match pattern to `manifest.json`
+2. Add the config to `extension/sites/sites.js` (and optionally to a matching JSON file)
+3. Add the host permission match pattern to `manifest.json`
 
 ## Release Process
 

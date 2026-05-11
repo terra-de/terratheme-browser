@@ -14,7 +14,6 @@ const STORAGE_DISABLED = "terratheme_disabled_origins";
 let palette = null;
 let siteConfig = null;
 let disabled = [];
-let siteConfigCache = new Map(); // url → config promise
 
 // ── Bootstrap ───────────────────────────────────────────────────────
 
@@ -142,10 +141,10 @@ function colorMixAlpha(hex, alpha) {
 
 // ── Site-specific style injection ───────────────────────────────────
 
-async function maybeApplySiteStyles(p) {
+function maybeApplySiteStyles(p) {
   if (isDisabled()) { removeSiteStyles(); return; }
 
-  const cfg = await resolveSiteConfig();
+  const cfg = resolveSiteConfig();
   if (!cfg) { removeSiteStyles(); return; }
 
   siteConfig = cfg;
@@ -175,53 +174,16 @@ function removeSiteStyles() {
 
 // ── Site config resolution ──────────────────────────────────────────
 
-const SITE_CANDIDATES = [
-  { path: "sites/github.json",     match: ["*://github.com/*"] },
-  { path: "sites/reddit.json",     match: ["*://www.reddit.com/*"] },
-  { path: "sites/youtube.json",    match: ["*://www.youtube.com/*", "*://youtube.com/*"] },
-  { path: "sites/chatgpt.json",    match: ["*://chatgpt.com/*"] },
-  { path: "sites/monkeytype.json", match: ["*://monkeytype.com/*"] },
-];
-
-function pickCandidate(url) {
-  for (const c of SITE_CANDIDATES) {
-    if (c.match.some((p) => urlMatches(url, p))) return c;
-  }
-  return null;
-}
-
 function urlMatches(url, pattern) {
   const re = new RegExp("^" + pattern.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$");
   return re.test(url);
 }
 
-async function resolveSiteConfig() {
-  const candidate = pickCandidate(location.href);
-  if (!candidate) return null;
-
-  // Return cached if already fetched for this URL
-  // (candidate.path is enough since it's the identity)
-
-  if (!siteConfigCache.has(candidate.path)) {
-    siteConfigCache.set(
-      candidate.path,
-      fetchSiteConfig(candidate.path)
-    );
+function resolveSiteConfig() {
+  for (const cfg of TERRA_SITE_CONFIGS) {
+    if (cfg.match.some((p) => urlMatches(location.href, p))) return cfg;
   }
-
-  try {
-    return await siteConfigCache.get(candidate.path);
-  } catch {
-    siteConfigCache.delete(candidate.path);
-    return null;
-  }
-}
-
-async function fetchSiteConfig(path) {
-  const url = browser.runtime.getURL(path);
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch ${path}: ${res.status}`);
-  return res.json();
+  return null;
 }
 
 // ── DOM helpers ─────────────────────────────────────────────────────

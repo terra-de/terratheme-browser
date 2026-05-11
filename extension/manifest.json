@@ -46,7 +46,7 @@
         "*://www.youtube.com/*",
         "*://monkeytype.com/*"
       ],
-      "js": ["content-script.js"],
+      "js": ["sites/sites.js", "content-script.js"],
       "run_at": "document_start"
     }
   ],

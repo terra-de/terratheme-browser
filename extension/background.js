@@ -91,15 +91,13 @@ function applyBrowserTheme(palette) {
       tab_line:                colors.c4 || colors.standard || "#e8e8e9",
       tab_loading:             colors.c4 || colors.standard || "#e8e8e9",
       tab_selected:            colors.top || "#4e557e",
-      tabs_border:             colors.outline || "#595d73",
 
       // URL bar / toolbar fields
       toolbar_field:                  colors.low || "#131520",
       toolbar_field_text:             colors.standard || "#e8e8e9",
       toolbar_field_border:           colors.outline || "#595d73",
       toolbar_field_focus:            colors.high || "#363b58",
-      toolbar_field_focus_text:       colors.standard || "#e8e8e9",
-      toolbar_field_focus_border:     colors.c4 || colors.standard || "#e8e8e9",
+      toolbar_field_border_focus:     colors.c4 || colors.standard || "#e8e8e9",
       toolbar_field_highlight:        colors.c4 || "#93adec",
       toolbar_field_highlight_text:   colors.on_c4 || "#181c35",
 
@@ -118,16 +116,10 @@ function applyBrowserTheme(palette) {
       // Buttons
       button_background_hover:  colors.high || "#363b58",
       button_background_active: colors.top || "#4e557e",
-      button_primary_hover:     colors.c4 || "#93adec",
-      button_primary_active:    colors.on_c4 || "#181c35",
-      button_primary_color:     colors.on_c4 || "#181c35",
 
       // New tab page
       ntp_background: colors.bottom || "#08080d",
       ntp_text:       colors.standard || "#e8e8e9",
-
-      // Error / attention
-      error_text_color:           colors.error || "#d2070b",
     },
   });
 }
