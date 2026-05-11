@@ -9,3 +9,4 @@ __pycache__/
 node_modules/
 dist/
 web-ext-artifacts/
+/extension/.amo-upload-uuid
