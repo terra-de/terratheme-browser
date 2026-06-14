@@ -15,6 +15,26 @@ let palette = null;
 let siteConfig = null;
 let disabled = [];
 
+// ── Retry helper ────────────────────────────────────────────────────
+// Background may not have currentPalette yet (native host still starting).
+// This keeps asking until the background has one.
+
+const RETRY_INTERVAL = 500;  // ms between retries
+const MAX_RETRIES = 10;      // up to 5 seconds total
+
+async function getPaletteFromBackground() {
+  for (let i = 0; i < MAX_RETRIES; i++) {
+    try {
+      const p = await browser.runtime.sendMessage({ action: "get_palette" });
+      if (p) return p;
+    } catch {
+      // Background might not be ready yet
+    }
+    await new Promise(r => setTimeout(r, RETRY_INTERVAL));
+  }
+  return null;
+}
+
 // ── Bootstrap ───────────────────────────────────────────────────────
 
 async function init() {
@@ -24,22 +44,18 @@ async function init() {
   // 2. Load disabled list from local storage
   disabled = await loadDisabled();
 
-  // 3. Try to get palette from storage.session first (cached from previous page)
+  // 3. Try to get palette (from storage.local, then retry via sendMessage)
   palette = await loadPalette();
 
-  // 4. If still null, ask background.js directly (most reliable — skips storage race)
+  // 4. If still null, retry until background has it (native host may still be starting)
   if (!palette) {
-    try {
-      palette = await browser.runtime.sendMessage({ action: "get_palette" });
-    } catch {
-      // Background might not be ready yet
-    }
+    palette = await getPaletteFromBackground();
   }
 
   // 5. Apply whatever we got
   if (palette) {
     applyBaseStyles(palette);
-    maybeApplySiteStyles(palette);
+    await maybeApplySiteStyles(palette);
   }
 
   // 6. SPA navigation watcher
@@ -47,8 +63,8 @@ async function init() {
   setInterval(() => {
     if (location.href !== last) {
       last = location.href;
-      siteConfig = null; // force re-resolve
-      (palette) && maybeApplySiteStyles(palette);
+      siteConfig = null;
+      if (palette) maybeApplySiteStyles(palette);
     }
   }, 300);
 }
@@ -70,6 +86,12 @@ function onStorageChanged(changes, area) {
 // ── Storage ─────────────────────────────────────────────────────────
 
 async function loadPalette() {
+  // Try storage.local first (persistent, accessible from content scripts)
+  try {
+    const r = await browser.storage.local.get(STORAGE_PALETTES);
+    if (r[STORAGE_PALETTES]) return r[STORAGE_PALETTES];
+  } catch {}
+  // Fall back to storage.session (only available from background)
   try {
     const r = await browser.storage.session.get(STORAGE_PALETTES);
     return r[STORAGE_PALETTES] || null;
@@ -149,12 +171,76 @@ function colorMixAlpha(hex, alpha) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+// ── Fetch proxy (via background, bypasses page CSP) ─────────────────
+
+async function fetchViaBackground(url) {
+  const resp = await browser.runtime.sendMessage({ action: "fetch_url", url });
+  if (!resp.ok) throw new Error(resp.error || "Unknown fetch error");
+  return resp.data;
+}
+
+// ── Site config fetching ────────────────────────────────────────────
+
+const DEFAULT_REGISTRY_URL = "https://raw.githubusercontent.com/terra-de/terratheme-sites/main/registry.json";
+const STORAGE_REGISTRY = "terratheme_registry";
+const STORAGE_SITE_CONFIGS = "terratheme_site_configs";
+const REGISTRY_TTL = 24 * 60 * 60 * 1000;
+
+let cachedRegistry = null;
+
+async function fetchRegistry() {
+  const text = await fetchViaBackground(DEFAULT_REGISTRY_URL);
+  return JSON.parse(text);
+}
+
+async function getRegistry() {
+  if (cachedRegistry) return cachedRegistry;
+  try {
+    const r = await browser.storage.local.get(STORAGE_REGISTRY);
+    const stored = r[STORAGE_REGISTRY];
+    if (stored) {
+      const age = Date.now() - (stored.fetched_at || 0);
+      if (age < REGISTRY_TTL) {
+        cachedRegistry = stored.data;
+        return cachedRegistry;
+      }
+    }
+  } catch {}
+  const registry = await fetchRegistry();
+  cachedRegistry = registry;
+  browser.storage.local.set({
+    [STORAGE_REGISTRY]: { data: registry, fetched_at: Date.now() }
+  }).catch(() => {});
+  return registry;
+}
+
+async function fetchSiteConfig(path) {
+  const base = DEFAULT_REGISTRY_URL.replace(/\/registry\.json$/, "");
+  const url = `${base}/${path}`;
+  const text = await fetchViaBackground(url);
+  return JSON.parse(text);
+}
+
+async function getSiteConfig(id, path) {
+  try {
+    const r = await browser.storage.local.get(STORAGE_SITE_CONFIGS);
+    const configs = r[STORAGE_SITE_CONFIGS] || {};
+    if (configs[id]) return configs[id];
+    const config = await fetchSiteConfig(path);
+    configs[id] = config;
+    await browser.storage.local.set({ [STORAGE_SITE_CONFIGS]: configs });
+    return config;
+  } catch {
+    return null;
+  }
+}
+
 // ── Site-specific style injection ───────────────────────────────────
 
-function maybeApplySiteStyles(p) {
+async function maybeApplySiteStyles(p) {
   if (isDisabled()) { removeSiteStyles(); return; }
 
-  const cfg = resolveSiteConfig();
+  const cfg = await resolveSiteConfig();
   if (!cfg) { removeSiteStyles(); return; }
 
   siteConfig = cfg;
@@ -189,11 +275,17 @@ function urlMatches(url, pattern) {
   return re.test(url);
 }
 
-function resolveSiteConfig() {
-  for (const cfg of TERRA_SITE_CONFIGS) {
-    if (cfg.match.some((p) => urlMatches(location.href, p))) return cfg;
+async function resolveSiteConfig() {
+  try {
+    const registry = await getRegistry();
+    const entry = registry.sites.find(s =>
+      s.matches.some(p => urlMatches(location.href, p))
+    );
+    if (!entry) return null;
+    return await getSiteConfig(entry.id, entry.path);
+  } catch {
+    return null;
   }
-  return null;
 }
 
 // ── DOM helpers ─────────────────────────────────────────────────────

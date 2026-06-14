@@ -66,6 +66,7 @@ function onHostMessage(msg) {
 
   // Persist in storage for content scripts
   browser.storage.session.set({ [STORAGE_KEY_PALETTES]: palette }).catch(() => {});
+  browser.storage.local.set({ [STORAGE_KEY_PALETTES]: palette }).catch(() => {});
 
   // Push palette to all tabs so content scripts update live
   broadcastToTabs(palette);
@@ -202,6 +203,13 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       connect();
       sendResponse({ ok: true });
       break;
+
+    case "fetch_url":
+      fetch(msg.url)
+        .then(r => r.ok ? r.text() : Promise.reject(`HTTP ${r.status}`))
+        .then(data => sendResponse({ ok: true, data }))
+        .catch(e => sendResponse({ ok: false, error: String(e) }));
+      return true;
   }
 });
 
