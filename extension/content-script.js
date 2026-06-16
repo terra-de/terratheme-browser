@@ -65,11 +65,7 @@ async function init() {
   startStyleObserver();
 
   // 7. Delayed re-apply to catch post-load theme JS (e.g., DDG, YouTube)
-  setTimeout(() => {
-    if (palette && siteConfig) {
-      applySiteStyles(siteConfig);
-    }
-  }, 1000);
+  setTimeout(reapplySiteStyles, 1000);
 
   // 8. SPA navigation watcher
   let last = location.href;
@@ -306,7 +302,14 @@ async function maybeApplySiteStyles(p) {
       return;
     }
     siteConfig = result.config;
-    applySiteStyles(result.config);
+
+    if (siteConfig.api) {
+      removeSiteStyles();
+      await applySiteApi(siteConfig.api);
+    } else {
+      applySiteStyles(siteConfig);
+    }
+
     reportStatus("supported", { siteName: result.siteName, siteId: result.siteId });
   } catch (e) {
     removeSiteStyles();
@@ -339,13 +342,60 @@ function removeSiteStyles() {
   appliedSiteProps = [];
 }
 
+// ── JS API-based site theming ──────────────────────────────────
+
+function resolveCssValue(value) {
+  if (!value) return value;
+  const el = document.createElement("span");
+  el.style.color = value;
+  document.body.appendChild(el);
+  const resolved = getComputedStyle(el).color;
+  document.body.removeChild(el);
+  return resolved || value;
+}
+
+async function applyDdgTheme(set) {
+  const pojo = window.wrappedJSObject || window;
+  let ddg = null;
+  for (let i = 0; i < 20; i++) {
+    if (pojo.DDG?.settings?.set) {
+      ddg = pojo.DDG;
+      break;
+    }
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  if (!ddg) return;
+  for (const [key, val] of Object.entries(set)) {
+    const resolved = resolveCssValue(val);
+    if (resolved) ddg.settings.set(key, resolved);
+  }
+  ddg.settings.set("kae", "terra-theme");
+}
+
+async function applySiteApi(api) {
+  switch (api.type) {
+    case "ddg":
+      await applyDdgTheme(api.set);
+      break;
+    default:
+      console.warn("terratheme: unknown api type:", api.type);
+  }
+}
+
+function reapplySiteStyles() {
+  if (!palette || !siteConfig) return;
+  if (siteConfig.api) {
+    applySiteApi(siteConfig.api);
+  } else {
+    applySiteStyles(siteConfig);
+  }
+}
+
 function onRootStyleChanged() {
   if (styleChangeTimer) clearTimeout(styleChangeTimer);
   styleChangeTimer = setTimeout(() => {
     styleChangeTimer = null;
-    if (palette && siteConfig) {
-      applySiteStyles(siteConfig);
-    }
+    reapplySiteStyles();
   }, 100);
 }
 
