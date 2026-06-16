@@ -15,6 +15,8 @@ const STORAGE_DISABLED = "terratheme_disabled_origins";
 let palette = null;
 let siteConfig = null;
 let disabled = [];
+let appliedSiteProps = [];
+let styleChangeTimer = null;
 
 // ── Retry helper ────────────────────────────────────────────────────
 // Background may not have currentPalette yet (native host still starting).
@@ -59,7 +61,17 @@ async function init() {
     await maybeApplySiteStyles(palette);
   }
 
-  // 6. SPA navigation watcher
+  // 6. Watch for dynamic style changes (e.g., DDG overriding with JS)
+  startStyleObserver();
+
+  // 7. Delayed re-apply to catch post-load theme JS (e.g., DDG, YouTube)
+  setTimeout(() => {
+    if (palette && siteConfig) {
+      applySiteStyles(siteConfig);
+    }
+  }, 1000);
+
+  // 8. SPA navigation watcher
   let last = location.href;
   setInterval(() => {
     if (location.href !== last) {
@@ -303,24 +315,43 @@ async function maybeApplySiteStyles(p) {
 }
 
 function applySiteStyles(cfg) {
-  const blocks = [];
+  const seen = [];
   for (const rule of cfg.rules) {
-    const sel = rule.selector;
     const props = rule.set || {};
     const imp = !!rule.important;
-    const lines = [`${sel} {`];
     for (const [prop, val] of Object.entries(props)) {
-      if (val != null) lines.push(`  ${prop}: ${val}${imp ? " !important" : ""};`);
+      if (val != null) {
+        const priority = imp ? "important" : undefined;
+        document.documentElement.style.setProperty(prop, val, priority);
+        seen.push(prop);
+      }
     }
-    lines.push("}");
-    blocks.push(lines.join("\n"));
   }
-  upsertStyle(STYLE_SITE, blocks.join("\n\n"));
+  appliedSiteProps = seen;
 }
 
 function removeSiteStyles() {
-  const el = document.getElementById(STYLE_SITE);
-  if (el) el.remove();
+  for (const prop of appliedSiteProps) {
+    if (document.documentElement) {
+      document.documentElement.style.removeProperty(prop);
+    }
+  }
+  appliedSiteProps = [];
+}
+
+function onRootStyleChanged() {
+  if (styleChangeTimer) clearTimeout(styleChangeTimer);
+  styleChangeTimer = setTimeout(() => {
+    styleChangeTimer = null;
+    if (palette && siteConfig) {
+      applySiteStyles(siteConfig);
+    }
+  }, 100);
+}
+
+function startStyleObserver() {
+  const observer = new MutationObserver(() => onRootStyleChanged());
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["style"] });
 }
 
 // ── Site config resolution ──────────────────────────────────────────
