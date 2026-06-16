@@ -14,6 +14,9 @@ let port = null;
 let currentPalette = null;
 let reconnectTimer = null;
 
+// ── Per-origin site status (written by content scripts, read by popup) ──
+let siteStatuses = {}; // origin -> { status, siteName, siteId, error, timestamp }
+
 // ── Native messaging connection ──────────────────────────────────
 
 function connect() {
@@ -198,6 +201,20 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     case "get_disabled_origins":
       getDisabledOrigins().then(sendResponse);
       return true;
+
+    case "site_status_update":
+      siteStatuses[msg.origin] = {
+        status: msg.status,
+        siteName: msg.siteName,
+        siteId: msg.siteId,
+        error: msg.error,
+        timestamp: msg.timestamp,
+      };
+      break;
+
+    case "get_site_status":
+      sendResponse(siteStatuses[msg.origin] || null);
+      break;
 
     case "reconnect_native":
       connect();

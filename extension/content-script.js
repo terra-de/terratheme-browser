@@ -2,8 +2,9 @@
  * Terra Theme Browser — Content Script
  *
  * Reads palette data from storage.session, injects --tt-* CSS variables
- * into every page, and applies site-specific CSS variable mappings
- * by fetching bundled site config JSON files.
+ * into every page, fetches site configs from the terratheme-sites remote
+ * registry, and applies per-site CSS variable overrides.
+ * Reports site status to the background script for popup display.
  */
 
 const STYLE_VARS = "tt-vars";
@@ -245,39 +246,60 @@ async function getSiteConfig(id, path) {
     const r = await browser.storage.local.get(STORAGE_SITE_CONFIGS);
     const configs = r[STORAGE_SITE_CONFIGS] || {};
     if (configs[id]) return configs[id];
-    const config = await fetchSiteConfig(path);
+  } catch {}
+  const config = await fetchSiteConfig(path);
+  try {
+    const r = await browser.storage.local.get(STORAGE_SITE_CONFIGS);
+    const configs = r[STORAGE_SITE_CONFIGS] || {};
     configs[id] = config;
     await browser.storage.local.set({ [STORAGE_SITE_CONFIGS]: configs });
-    return config;
-  } catch {
-    return null;
-  }
+  } catch {}
+  return config;
 }
 
 async function refreshSiteConfigs() {
   cachedRegistry = null;
   await browser.storage.local.remove([STORAGE_REGISTRY, STORAGE_SITE_CONFIGS]);
   if (palette) {
-    const config = await resolveSiteConfig();
-    if (config) {
-      siteConfig = config;
-      applySiteStyles(config);
-    } else {
-      removeSiteStyles();
-    }
+    await maybeApplySiteStyles(palette);
   }
+}
+
+// ── Site status reporting ──────────────────────────────────────────
+
+function reportStatus(status, extra) {
+  const data = {
+    action: "site_status_update",
+    origin: location.origin,
+    status,
+    siteName: extra?.siteName || "",
+    siteId: extra?.siteId || "",
+    error: extra?.error || "",
+    timestamp: Date.now(),
+  };
+  browser.runtime.sendMessage(data).catch(() => {});
 }
 
 // ── Site-specific style injection ───────────────────────────────────
 
 async function maybeApplySiteStyles(p) {
-  if (isDisabled()) { removeSiteStyles(); return; }
+  if (isDisabled()) { removeSiteStyles(); reportStatus("disabled"); return; }
 
-  const cfg = await resolveSiteConfig();
-  if (!cfg) { removeSiteStyles(); return; }
-
-  siteConfig = cfg;
-  applySiteStyles(cfg);
+  reportStatus("fetching");
+  try {
+    const result = await resolveSiteConfig();
+    if (!result) {
+      removeSiteStyles();
+      reportStatus("unsupported");
+      return;
+    }
+    siteConfig = result.config;
+    applySiteStyles(result.config);
+    reportStatus("supported", { siteName: result.siteName, siteId: result.siteId });
+  } catch (e) {
+    removeSiteStyles();
+    reportStatus("fetch_error", { error: e.message || String(e) });
+  }
 }
 
 function applySiteStyles(cfg) {
@@ -309,16 +331,13 @@ function urlMatches(url, pattern) {
 }
 
 async function resolveSiteConfig() {
-  try {
-    const registry = await getRegistry();
-    const entry = registry.sites.find(s =>
-      s.matches.some(p => urlMatches(location.href, p))
-    );
-    if (!entry) return null;
-    return await getSiteConfig(entry.id, entry.path);
-  } catch {
-    return null;
-  }
+  const registry = await getRegistry();
+  const entry = registry.sites.find(s =>
+    s.matches.some(p => urlMatches(location.href, p))
+  );
+  if (!entry) return null;
+  const config = await getSiteConfig(entry.id, entry.path);
+  return { config, siteName: entry.name, siteId: entry.id };
 }
 
 // ── DOM helpers ─────────────────────────────────────────────────────

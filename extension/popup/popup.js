@@ -30,6 +30,14 @@ async function init() {
   updateSwatches(palette);
   applyPopupPalette(palette);
   updateDisableToggle(isDisabled, origin);
+  updateSiteStatus(origin);
+  document.getElementById("site-issue-link").addEventListener("click", async (e) => {
+    e.preventDefault();
+    const url = e.currentTarget.href;
+    if (url && url !== "#") {
+      await browser.tabs.create({ url });
+    }
+  });
   checkPermissions();
   setupSiteConfigControls(origin);
   loadRegistryUrl();
@@ -124,6 +132,61 @@ function updateDisableToggle(isDisabled, origin) {
       browser.tabs.reload();
     } else {
       browser.tabs.reload();
+    }
+  });
+}
+
+function updateSiteStatus(origin) {
+  const icon = document.getElementById("site-status-icon");
+  const text = document.getElementById("site-status-text");
+  const link = document.getElementById("site-issue-link");
+
+  BG.sendMessage({ action: "get_site_status", origin }).then((status) => {
+    if (!status) {
+      icon.className = "status-dot status-idle";
+      text.textContent = "Checking…";
+      return;
+    }
+
+    const name = status.siteName || origin;
+
+    switch (status.status) {
+      case "supported":
+        icon.className = "status-dot status-loaded";
+        text.textContent = `${name} — themed`;
+        link.classList.add("hidden");
+        break;
+      case "unsupported":
+        icon.className = "status-dot status-idle";
+        text.textContent = "Not yet supported";
+        link.textContent = "Open Issue →";
+        link.href = `https://github.com/terra-de/terratheme-sites/issues/new?title=${encodeURIComponent("Support for " + origin)}&labels=site-request`;
+        link.classList.remove("hidden");
+        break;
+      case "fetching":
+        icon.className = "status-dot status-connecting";
+        text.textContent = "Loading site configs…";
+        link.classList.add("hidden");
+        break;
+      case "fetch_error":
+        icon.className = "status-dot status-error";
+        text.textContent = "Failed to load site config";
+        link.classList.add("hidden");
+        break;
+      case "disabled":
+        icon.className = "status-dot status-idle";
+        text.textContent = "Disabled on this site";
+        link.classList.add("hidden");
+        break;
+      case "no_palette":
+        icon.className = "status-dot status-idle";
+        text.textContent = "Waiting for palette…";
+        link.classList.add("hidden");
+        break;
+      default:
+        icon.className = "status-dot status-idle";
+        text.textContent = "Unknown";
+        link.classList.add("hidden");
     }
   });
 }

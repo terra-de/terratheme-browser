@@ -19,18 +19,12 @@ terratheme-browser/
 ├── extension/              # Firefox extension (Manifest V3)
 │   ├── manifest.json       # Extension manifest
 │   ├── background.js       # Native messaging + browser.theme.update()
-│   ├── content-script.js   # --tt-* injection + per-site CSS
+│   │                      #   + siteStatuses in-memory map (popup reads via messaging)
+│   ├── content-script.js   # --tt-* injection + per-site CSS + status reporting
 │   ├── popup/
 │   │   ├── popup.html
 │   │   ├── popup.js
 │   │   └── popup.css
-│   ├── sites/
-│   │   ├── sites.js         # Bundled site configs (loaded before content-script.js)
-│   │   ├── github.json
-│   │   ├── reddit.json
-│   │   ├── youtube.json
-│   │   ├── chatgpt.json
-│   │   └── monkeytype.json
 │   └── icons/
 │       ├── icon-48.svg
 │       ├── icon-96.svg
@@ -53,14 +47,24 @@ host/terratheme-browser.py (Python native messaging host)
     │
     ▼ (stdin/stdout, 4-byte length prefix + JSON)
 extension/background.js
+    ├── siteStatuses map  ◄──── content scripts report status via sendMessage
     ├── browser.theme.update() → Firefox chrome
     └── browser.storage.session.set() → content scripts read it
                                         │
                                         ▼
                                    content-script.js
                                     ├── Injects :root { --tt-*: ... }
-                                    └── Uses TERRA_SITE_CONFIGS from sites.js
-                                        └── Applies per-site CSS var overrides
+                                    ├── Fetches registry from github.com/terra-de/terratheme-sites
+                                    ├── Applies per-site CSS var overrides
+                                    └── Reports site status → background → popup
+                                        │
+                                        ▼
+                                   background.js siteStatuses
+                                        │
+                                        ▼
+                                   popup.js reads via sendMessage
+                                    ├── Shows site status (supported/unsupported/fetching/error)
+                                    └── "Open Issue" link for unsupported sites
 ```
 
 ## Terra DE Token → CSS Variable Mapping
@@ -119,13 +123,12 @@ The extension will auto-connect when loaded in Firefox.
 
 ## Site Config Format
 
-Each site config is a JSON file in `extension/sites/` (and bundled into
-`sites.js` as `TERRA_SITE_CONFIGS`) with:
+Site configs are stored in the `terra-de/terratheme-sites` GitHub repo.
+Each site has a JSON config with:
 
 ```json
 {
   "version": 2,
-  "match": ["*://github.com/*"],
   "rules": [
     {
       "selector": ":root",
@@ -140,13 +143,54 @@ Each site config is a JSON file in `extension/sites/` (and bundled into
 ```
 
 Rules reference `--tt-*` CSS variables which are already defined on `:root`
-by the content script.
+by the content script. The registry (`registry.json`) maps hostname patterns
+to config paths:
 
-## Adding a new site
+```json
+{
+  "version": 1,
+  "updated": "2026-06-09T00:00:00Z",
+  "sites": [
+    { "id": "github", "name": "GitHub", "matches": ["*://github.com/*"], "path": "sites/github.json" }
+  ]
+}
+```
+
+## Site Status Reporting
+
+After resolving site configs, the content script reports status to the
+background's `siteStatuses` in-memory map via `runtime.sendMessage`.
+The popup reads this map to display per-site status.
+
+### Status States
+
+| Status | Meaning | Popup Display |
+|--------|---------|---------------|
+| `supported` | Registry entry found, config fetched and applied | `"GitHub — themed"` (green) |
+| `unsupported` | Site not in registry | `"Not yet supported"` (gray) + "Open Issue →" link |
+| `fetching` | Registry or config currently downloading | `"Loading site configs…"` (yellow) |
+| `fetch_error` | Fetch or parse failed (network, 404, bad JSON) | `"Failed to load site config"` (red) |
+| `disabled` | User toggled "Disable on this site" | `"Disabled on this site"` (gray) |
+| `no_palette` | No palette loaded yet, site configs not attempted | `"Waiting for palette…"` (gray) |
+
+### "Open Issue" Flow
+
+For unsupported sites, the popup shows a link that opens:
+
+```
+https://github.com/terra-de/terratheme-sites/issues/new
+  ?title=Support+for+<origin>
+  &labels=site-request
+```
+
+This opens in a new tab via `browser.tabs.create()`.
+
+### Adding a new site
 
 1. Analyze the site's CSS variables (use DevTools to inspect computed styles on `<html>`)
-2. Add the config to `extension/sites/sites.js` (and optionally to a matching JSON file)
-3. Add the host permission match pattern to `manifest.json`
+2. Add a config JSON to `github.com/terra-de/terratheme-sites` (the `sites/` dir)
+3. Add a registry entry in `registry.json`
+4. That's it — no extension changes needed (configs are fetched remotely)
 
 ## Release Process
 
