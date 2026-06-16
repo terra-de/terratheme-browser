@@ -29,6 +29,7 @@ async function init() {
   updateModeBadge(palette);
   updateSwatches(palette);
   updateDisableToggle(isDisabled, origin);
+  checkPermissions();
   setupSiteConfigControls(origin);
   loadRegistryUrl();
 }
@@ -156,6 +157,25 @@ function loadRegistryUrl() {
     await browser.storage.local.remove(["terratheme_registry", "terratheme_site_configs"]);
     status.textContent = "Reset to default. Refresh will re-fetch.";
     status.className = "registry-status ok";
+  });
+}
+
+async function checkPermissions() {
+  const warning = document.getElementById("perm-warning");
+  if (!warning) return;
+
+  try {
+    const granted = await browser.permissions.contains({ origins: ["*://*/*"] });
+    warning.classList.toggle("hidden", granted);
+  } catch {
+    warning.classList.add("hidden");
+  }
+
+  document.getElementById("grant-perm")?.addEventListener("click", async () => {
+    try {
+      const granted = await browser.permissions.request({ origins: ["*://*/*"] });
+      warning.classList.toggle("hidden", granted);
+    } catch {}
   });
 }
 

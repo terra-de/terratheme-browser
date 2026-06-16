@@ -24,13 +24,7 @@
     "theme"
   ],
 
-  "host_permissions": [
-    "*://github.com/*",
-    "*://chatgpt.com/*",
-    "*://www.reddit.com/*",
-    "*://www.youtube.com/*",
-    "*://monkeytype.com/*"
-  ],
+  "host_permissions": ["*://*/*"],
 
   "background": {
     "scripts": ["background.js"],

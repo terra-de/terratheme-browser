@@ -46,6 +46,36 @@ h1 {
   font-weight: 600;
 }
 
+/* ── Permission warning ──────────────────────────────── */
+
+.perm-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  margin-bottom: 10px;
+  background: #332200;
+  border: 1px solid #d4a700;
+  border-radius: var(--radius);
+}
+
+.perm-warning.hidden {
+  display: none;
+}
+
+.perm-warning-text {
+  flex: 1;
+  font-size: 11px;
+  color: #d4a700;
+}
+
+.perm-warning-text code {
+  font-size: 10px;
+  background: rgba(0,0,0,0.3);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
 .badge {
   font-size: 11px;
   padding: 2px 8px;
