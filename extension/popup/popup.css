@@ -7,15 +7,15 @@
 }
 
 :root {
-  --bg: #1a1a2e;
-  --surface: #232639;
-  --surface-high: #363b58;
-  --text: #e8e8e9;
-  --muted: #959597;
-  --accent: #93adec;
-  --error: #d2070b;
+  --bg: var(--popup-bg, #1a1a2e);
+  --surface: var(--popup-surface, #232639);
+  --surface-h: var(--popup-surface-h, #363b58);
+  --text: var(--popup-text, #e8e8e9);
+  --muted: var(--popup-muted, #959597);
+  --accent: var(--popup-accent, #93adec);
+  --error: var(--popup-error, #d2070b);
   --success: #4ade80;
-  --border: #595d73;
+  --border: var(--popup-border, #595d73);
   --radius: 8px;
 }
 
@@ -87,9 +87,9 @@ h1 {
 }
 
 .badge-dark {
-  background: #1a1a2e;
-  color: #93adec;
-  border: 1px solid #93adec;
+  background: var(--popup-bg, #1a1a2e);
+  color: var(--popup-accent, #93adec);
+  border: 1px solid var(--popup-accent, #93adec);
 }
 
 .badge-light {
@@ -191,7 +191,7 @@ h1 {
 .toggle-slider {
   width: 36px;
   height: 20px;
-  background: var(--surface-high);
+  background: var(--surface-h);
   border-radius: 10px;
   position: relative;
   transition: background 0.2s;
@@ -238,7 +238,7 @@ h1 {
 }
 
 .btn:hover {
-  background: var(--surface-high);
+  background: var(--surface-h);
 }
 
 .btn:disabled {

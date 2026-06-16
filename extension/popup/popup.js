@@ -28,6 +28,7 @@ async function init() {
   updateStatus(palette);
   updateModeBadge(palette);
   updateSwatches(palette);
+  applyPopupPalette(palette);
   updateDisableToggle(isDisabled, origin);
   checkPermissions();
   setupSiteConfigControls(origin);
@@ -85,6 +86,25 @@ function updateSwatches(palette) {
       </div>`;
     })
     .join("");
+}
+
+function applyPopupPalette(palette) {
+  if (!palette) return;
+  const colors = palette.mode === "light" ? palette.light : palette.dark;
+  const el = document.documentElement;
+  const map = {
+    "--popup-bg": colors.bottom,
+    "--popup-surface": colors.low,
+    "--popup-surface-h": colors.high,
+    "--popup-text": colors.standard,
+    "--popup-muted": colors.muted,
+    "--popup-accent": colors.c4,
+    "--popup-error": colors.error,
+    "--popup-border": colors.outline,
+  };
+  for (const [key, val] of Object.entries(map)) {
+    if (val) el.style.setProperty(key, val);
+  }
 }
 
 function updateDisableToggle(isDisabled, origin) {
