@@ -21,6 +21,7 @@
     "alarms",
     "nativeMessaging",
     "storage",
+    "tabs",
     "theme"
   ],
 

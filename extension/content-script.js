@@ -253,13 +253,17 @@ async function getSiteConfig(id, path) {
   try {
     const r = await browser.storage.local.get(STORAGE_SITE_CONFIGS);
     const configs = r[STORAGE_SITE_CONFIGS] || {};
-    if (configs[id]) return configs[id];
+    const entry = configs[id];
+    if (entry) {
+      const age = Date.now() - (entry.fetched_at || 0);
+      if (age < REGISTRY_TTL) return entry.data;
+    }
   } catch {}
   const config = await fetchSiteConfig(path);
   try {
     const r = await browser.storage.local.get(STORAGE_SITE_CONFIGS);
     const configs = r[STORAGE_SITE_CONFIGS] || {};
-    configs[id] = config;
+    configs[id] = { data: config, fetched_at: Date.now() };
     await browser.storage.local.set({ [STORAGE_SITE_CONFIGS]: configs });
   } catch {}
   return config;
