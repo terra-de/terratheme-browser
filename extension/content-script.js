@@ -117,6 +117,9 @@ browser.runtime.onMessage.addListener((msg) => {
     applyBaseStyles(palette);
     maybeApplySiteStyles(palette);
   }
+  if (msg.action === "refresh_configs") {
+    refreshSiteConfigs();
+  }
 });
 
 // ── Base style injection ────────────────────────────────────────────
@@ -184,12 +187,28 @@ async function fetchViaBackground(url) {
 const DEFAULT_REGISTRY_URL = "https://raw.githubusercontent.com/terra-de/terratheme-sites/main/registry.json";
 const STORAGE_REGISTRY = "terratheme_registry";
 const STORAGE_SITE_CONFIGS = "terratheme_site_configs";
+const STORAGE_REGISTRY_URL = "terratheme_registry_url";
 const REGISTRY_TTL = 24 * 60 * 60 * 1000;
 
 let cachedRegistry = null;
 
+async function getRegistryUrl() {
+  try {
+    const r = await browser.storage.local.get(STORAGE_REGISTRY_URL);
+    return r[STORAGE_REGISTRY_URL] || DEFAULT_REGISTRY_URL;
+  } catch {
+    return DEFAULT_REGISTRY_URL;
+  }
+}
+
+async function getBaseUrl() {
+  const url = await getRegistryUrl();
+  return url.replace(/\/registry\.json$/, "");
+}
+
 async function fetchRegistry() {
-  const text = await fetchViaBackground(DEFAULT_REGISTRY_URL);
+  const url = await getRegistryUrl();
+  const text = await fetchViaBackground(url);
   return JSON.parse(text);
 }
 
@@ -215,7 +234,7 @@ async function getRegistry() {
 }
 
 async function fetchSiteConfig(path) {
-  const base = DEFAULT_REGISTRY_URL.replace(/\/registry\.json$/, "");
+  const base = await getBaseUrl();
   const url = `${base}/${path}`;
   const text = await fetchViaBackground(url);
   return JSON.parse(text);
@@ -232,6 +251,20 @@ async function getSiteConfig(id, path) {
     return config;
   } catch {
     return null;
+  }
+}
+
+async function refreshSiteConfigs() {
+  cachedRegistry = null;
+  await browser.storage.local.remove([STORAGE_REGISTRY, STORAGE_SITE_CONFIGS]);
+  if (palette) {
+    const config = await resolveSiteConfig();
+    if (config) {
+      siteConfig = config;
+      applySiteStyles(config);
+    } else {
+      removeSiteStyles();
+    }
   }
 }
 

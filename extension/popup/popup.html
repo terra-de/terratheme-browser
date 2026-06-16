@@ -31,6 +31,23 @@
       </label>
     </section>
 
+    <section id="site-configs-section">
+      <button id="refresh-configs" class="btn">Refresh Site Configs</button>
+      <details class="advanced">
+        <summary>Advanced</summary>
+        <div class="settings-row">
+          <label for="registry-url">Registry URL:</label>
+          <input type="url" id="registry-url" class="text-input"
+            placeholder="https://raw.githubusercontent.com/.../registry.json">
+          <div class="settings-actions">
+            <button id="save-url" class="btn btn-small">Save</button>
+            <button id="reset-url" class="btn btn-small btn-ghost">Reset to default</button>
+          </div>
+          <span id="registry-status" class="registry-status"></span>
+        </div>
+      </details>
+    </section>
+
     <footer>
       <span id="site-domain"></span>
     </footer>

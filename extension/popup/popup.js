@@ -5,33 +5,32 @@
  */
 
 const BG = browser.runtime;
+const STORAGE_REGISTRY_URL = "terratheme_registry_url";
+const DEFAULT_REGISTRY_URL = "https://raw.githubusercontent.com/terra-de/terratheme-sites/main/registry.json";
 
 async function init() {
   const app = document.getElementById("app");
 
-  // Get current tab origin (with fallback on error)
   let origin = "";
   try {
     const tabs = await browser.tabs?.query({ active: true, currentWindow: true });
     if (tabs?.[0]?.url) {
       origin = new URL(tabs[0].url).origin;
     }
-  } catch {
-    // tabs.query may fail in some Firefox contexts
-  }
+  } catch {}
   document.getElementById("site-domain").textContent = origin || "unknown";
 
-  // Get palette and disable state from background
   const [palette, isDisabled] = await Promise.all([
     BG.sendMessage({ action: "get_palette" }),
     origin ? BG.sendMessage({ action: "is_disabled", origin }) : Promise.resolve(false),
   ]);
 
-  // Update status
   updateStatus(palette);
   updateModeBadge(palette);
   updateSwatches(palette);
   updateDisableToggle(isDisabled, origin);
+  setupSiteConfigControls(origin);
+  loadRegistryUrl();
 }
 
 function updateStatus(palette) {
@@ -101,12 +100,62 @@ function updateDisableToggle(isDisabled, origin) {
     });
 
     if (nowDisabled) {
-      // Theme is now disabled for this site — reload to remove styles
       browser.tabs.reload();
     } else {
-      // Theme is now enabled — reload to apply
       browser.tabs.reload();
     }
+  });
+}
+
+function setupSiteConfigControls(origin) {
+  const refreshBtn = document.getElementById("refresh-configs");
+  refreshBtn.addEventListener("click", async () => {
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = "Refreshing…";
+
+    await browser.storage.local.remove(["terratheme_registry", "terratheme_site_configs"]);
+
+    try {
+      const tabs = await browser.tabs.query({});
+      for (const tab of tabs) {
+        try {
+          await browser.tabs.sendMessage(tab.id, { action: "refresh_configs" });
+        } catch {}
+      }
+    } catch {}
+
+    browser.tabs.reload();
+    refreshBtn.textContent = "Refreshed!";
+  });
+}
+
+function loadRegistryUrl() {
+  const input = document.getElementById("registry-url");
+  const status = document.getElementById("registry-status");
+
+  browser.storage.local.get(STORAGE_REGISTRY_URL).then((r) => {
+    input.value = r[STORAGE_REGISTRY_URL] || DEFAULT_REGISTRY_URL;
+  });
+
+  document.getElementById("save-url").addEventListener("click", async () => {
+    const url = input.value.trim();
+    if (!url) {
+      status.textContent = "Please enter a URL";
+      status.className = "registry-status error";
+      return;
+    }
+    await browser.storage.local.set({ [STORAGE_REGISTRY_URL]: url });
+    await browser.storage.local.remove(["terratheme_registry", "terratheme_site_configs"]);
+    status.textContent = "Saved. Refresh will use new URL.";
+    status.className = "registry-status ok";
+  });
+
+  document.getElementById("reset-url").addEventListener("click", async () => {
+    await browser.storage.local.remove(STORAGE_REGISTRY_URL);
+    input.value = DEFAULT_REGISTRY_URL;
+    await browser.storage.local.remove(["terratheme_registry", "terratheme_site_configs"]);
+    status.textContent = "Reset to default. Refresh will re-fetch.";
+    status.className = "registry-status ok";
   });
 }
 

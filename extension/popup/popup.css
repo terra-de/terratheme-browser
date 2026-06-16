@@ -188,6 +188,117 @@ h1 {
   background: var(--text);
 }
 
+/* ── Site configs section ────────────────────────────── */
+
+#site-configs-section {
+  margin-bottom: 8px;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.2s;
+}
+
+.btn:hover {
+  background: var(--surface-high);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn-small {
+  display: inline-block;
+  width: auto;
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.btn-ghost:hover {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.advanced {
+  margin-top: 8px;
+}
+
+.advanced summary {
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.advanced summary:hover {
+  color: var(--text);
+}
+
+.settings-row {
+  margin-top: 6px;
+  padding: 8px;
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+.settings-row label {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.text-input {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-family: monospace;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.settings-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.registry-status {
+  display: block;
+  font-size: 10px;
+  margin-top: 4px;
+}
+
+.registry-status.ok {
+  color: var(--success);
+}
+
+.registry-status.error {
+  color: var(--error);
+}
+
 /* ── Footer ──────────────────────────────────────────── */
 
 footer {
