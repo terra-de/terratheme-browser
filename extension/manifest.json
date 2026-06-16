@@ -39,13 +39,7 @@
 
   "content_scripts": [
     {
-      "matches": [
-        "*://github.com/*",
-        "*://chatgpt.com/*",
-        "*://www.reddit.com/*",
-        "*://www.youtube.com/*",
-        "*://monkeytype.com/*"
-      ],
+      "matches": ["*://*/*"],
       "js": ["content-script.js"],
       "run_at": "document_start"
     }
